@@ -94,11 +94,11 @@
         isFromBranchLink = [[params objectForKey:@"+clicked_branch_link"] boolValue];
 
         if (!error) {
-            if (params != nil && [params count] > 0 && isFromBranchLink) {
+            if (params != nil && [params count] > 0) {
  
                 NSError *err;
                 NSData *jsonData = [NSJSONSerialization dataWithJSONObject:params options:0 error:&err];
-
+            if(isFromBranchLink){
                 if (!jsonData) {
                     NSLog(@"Parsing Error: %@", [err localizedDescription]);
                     NSDictionary *errorDict = [NSDictionary dictionaryWithObjectsAndKeys:[err localizedDescription], @"error", nil];
@@ -113,9 +113,13 @@
                     pluginResult = [CDVPluginResult resultWithStatus:CDVCommandStatus_OK messageAsDictionary:params];
                 }
             } else {
-                pluginResult = [CDVPluginResult resultWithStatus:CDVCommandStatus_OK messageAsBool:FALSE];
+                resultString = [[NSString alloc] initWithData:jsonData encoding:NSUTF8StringEncoding];
+                [self.commandDelegate evalJs:[NSString stringWithFormat:@"DeepLinkHandler(%@)", resultString]];
+                pluginResult = [CDVPluginResult resultWithStatus:CDVCommandStatus_OK messageAsDictionary:params];
+                //pluginResult = [CDVPluginResult resultWithStatus:CDVCommandStatus_OK messageAsBool:FALSE];
             }
         }
+    }
         else {
             NSLog(@"Init Error: %@", [error localizedDescription]);
 
