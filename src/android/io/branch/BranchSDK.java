@@ -682,7 +682,7 @@ public class BranchSDK extends CordovaPlugin {
                         message.put("error", "Not a Branch link!");
                         message.put("url", deepLinkUrl);
 
-                        out = String.format("NonBranchLinkHandler(%s)", message.toString());
+                        out = String.format("DeepLinkHandler(%s)", referringParams.toString());
                         webView.sendJavascript(out);
                     }
                     deepLinkUrl = null;
