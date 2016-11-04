@@ -94,26 +94,29 @@
         isFromBranchLink = [[params objectForKey:@"+clicked_branch_link"] boolValue];
 
         if (!error) {
-            if (params != nil && [params count] > 0 && isFromBranchLink) {
+            if (params != nil && [params count] > 0) {
  
                 NSError *err;
                 NSData *jsonData = [NSJSONSerialization dataWithJSONObject:params options:0 error:&err];
+                if (isFromBranchLink) {
+                    if (!jsonData) {
+                        NSLog(@"Parsing Error: %@", [err localizedDescription]);
+                        NSDictionary *errorDict = [NSDictionary dictionaryWithObjectsAndKeys:[err localizedDescription], @"error", nil];
+                        NSData* errorJSON = [NSJSONSerialization dataWithJSONObject:errorDict
+                                                                            options:NSJSONWritingPrettyPrinted
+                                                                              error:&err];
 
-                if (!jsonData) {
-                    NSLog(@"Parsing Error: %@", [err localizedDescription]);
-                    NSDictionary *errorDict = [NSDictionary dictionaryWithObjectsAndKeys:[err localizedDescription], @"error", nil];
-                    NSData* errorJSON = [NSJSONSerialization dataWithJSONObject:errorDict
-                                                                        options:NSJSONWritingPrettyPrinted
-                                                                          error:&err];
-
-                    resultString = [[NSString alloc] initWithData:errorJSON encoding:NSUTF8StringEncoding];
-                    pluginResult = [CDVPluginResult resultWithStatus:CDVCommandStatus_ERROR messageAsString:resultString];
+                        resultString = [[NSString alloc] initWithData:errorJSON encoding:NSUTF8StringEncoding];
+                        pluginResult = [CDVPluginResult resultWithStatus:CDVCommandStatus_ERROR messageAsString:resultString];
+                    } else {
+                        resultString = [[NSString alloc] initWithData:jsonData encoding:NSUTF8StringEncoding];
+                        pluginResult = [CDVPluginResult resultWithStatus:CDVCommandStatus_OK messageAsDictionary:params];
+                    }
                 } else {
                     resultString = [[NSString alloc] initWithData:jsonData encoding:NSUTF8StringEncoding];
+                    [self.commandDelegate evalJs:[NSString stringWithFormat:@"DeepLinkHandler(%@)", resultString]];
                     pluginResult = [CDVPluginResult resultWithStatus:CDVCommandStatus_OK messageAsDictionary:params];
                 }
-            } else {
-                pluginResult = [CDVPluginResult resultWithStatus:CDVCommandStatus_OK messageAsBool:FALSE];
             }
         }
         else {
